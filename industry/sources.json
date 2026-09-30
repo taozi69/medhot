@@ -1,388 +1,109 @@
 {
-  "$comment": "示范信源：首次启动时导入（scripts/seed.ts），已存在的不会被覆盖。之后在后台“信源”里增删改。字段说明见 docs/customize.md。",
+  "$comment": "医疗版示范信源：首次启动时导入（scripts/seed.ts），已存在的不会被覆盖。之后在后台“信源”里增删改。分级：T1 政府/监管官方（NMPA/卫健委/医保局/CDC/WHO/FDA/EMA）；T1.5 医学会/大学医院/科研机构官方；T2 高质量期刊与专业媒体；T3 产业媒体与企业（participation_mode=hot_signal 的只作热度证据，不靠它进精选）。注意：NMPA、国家卫健委官网有 JS 反爬、FDA/EMA 无官方 RSS，未放进种子，请在后台用 web_list 配代理或 external 推送补上；企业宣传稿一律标 hot_signal（营销属性，只作传播证据，不写进精选结论）。",
   "sources": [
     {
-      "id": "rss-openai-news",
-      "name": "OpenAI News",
+      "id": "rss-nejm",
+      "name": "NEJM 新英格兰医学杂志",
       "kind": "rss",
-      "config": {
-        "feedUrl": "https://openai.com/news/rss.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "first_party": true,
-      "owner_entity_id": "openai",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
+      "config": { "feedUrl": "https://www.nejm.org/action/showFeed?type=etoc&feed=rss&jc=nejm", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T2", "first_party": false, "owner_entity_id": "nejm", "participation_mode": "editorial",
+      "interval_minutes": 180, "tags": ["期刊", "顶刊"], "site_fulltext": false, "syndicate_fulltext": false
     },
     {
-      "id": "rss-google-deepmind",
-      "name": "Google DeepMind",
+      "id": "rss-lancet",
+      "name": "The Lancet 柳叶刀",
       "kind": "rss",
-      "config": {
-        "feedUrl": "https://deepmind.google/blog/rss.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "first_party": true,
-      "owner_entity_id": "google",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
+      "config": { "feedUrl": "https://www.thelancet.com/action/showFeed?type=etoc&feed=rss&jc=lancet", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T2", "first_party": false, "owner_entity_id": "lancet", "participation_mode": "editorial",
+      "interval_minutes": 180, "tags": ["期刊", "顶刊"], "site_fulltext": false, "syndicate_fulltext": false
     },
     {
-      "id": "rss-google-research",
-      "name": "Google Research",
+      "id": "rss-nature-medicine",
+      "name": "Nature Medicine",
       "kind": "rss",
-      "config": {
-        "feedUrl": "https://research.google/blog/rss/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "first_party": true,
-      "owner_entity_id": "google",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方",
-        "研究"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
+      "config": { "feedUrl": "https://www.nature.com/nm.rss", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T2", "first_party": false, "participation_mode": "editorial",
+      "interval_minutes": 180, "tags": ["期刊"], "site_fulltext": false, "syndicate_fulltext": false
     },
     {
-      "id": "rss-hugging-face",
-      "name": "Hugging Face Blog",
+      "id": "rss-nature-reviews-cancer",
+      "name": "Nature Reviews Cancer",
       "kind": "rss",
-      "config": {
-        "feedUrl": "https://huggingface.co/blog/feed.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "first_party": true,
-      "owner_entity_id": "hugging-face",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方",
-        "开源"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
+      "config": { "feedUrl": "https://www.nature.com/nrc.rss", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T2", "first_party": false, "participation_mode": "editorial",
+      "interval_minutes": 360, "tags": ["期刊", "肿瘤"], "site_fulltext": false, "syndicate_fulltext": false
     },
     {
-      "id": "rss-microsoft-research",
-      "name": "Microsoft Research",
+      "id": "rss-arxiv-qbionmn",
+      "name": "arXiv q-bio.MN（分子生物学预印本）",
       "kind": "rss",
-      "config": {
-        "feedUrl": "https://www.microsoft.com/en-us/research/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "first_party": true,
-      "owner_entity_id": "microsoft",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方",
-        "研究"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
+      "config": { "feedUrl": "https://rss.arxiv.org/rss/q-bio.MN", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T2", "first_party": false, "participation_mode": "editorial",
+      "interval_minutes": 360, "tags": ["预印本"], "site_fulltext": false, "syndicate_fulltext": false
     },
     {
-      "id": "rss-nvidia-blog",
-      "name": "NVIDIA Blog",
+      "id": "rss-stat-news",
+      "name": "STAT 专业医疗媒体",
       "kind": "rss",
-      "config": {
-        "feedUrl": "https://blogs.nvidia.com/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "first_party": true,
-      "owner_entity_id": "nvidia",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
+      "config": { "feedUrl": "https://www.statnews.com/feed/", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T2", "first_party": false, "participation_mode": "editorial",
+      "interval_minutes": 60, "tags": ["专业媒体"], "site_fulltext": true, "syndicate_fulltext": false
     },
     {
-      "id": "rss-aws-ml",
-      "name": "AWS Machine Learning Blog",
+      "id": "rss-stat-pharma",
+      "name": "STAT 医药频道",
       "kind": "rss",
-      "config": {
-        "feedUrl": "https://aws.amazon.com/blogs/machine-learning/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "first_party": true,
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方",
-        "教程"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
+      "config": { "feedUrl": "https://www.statnews.com/category/pharma/feed/", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T2", "first_party": false, "participation_mode": "editorial",
+      "interval_minutes": 60, "tags": ["专业媒体", "药品"], "site_fulltext": true, "syndicate_fulltext": false
     },
     {
-      "id": "rss-github-ai",
-      "name": "GitHub Blog · AI & ML",
+      "id": "rss-medtechdive",
+      "name": "MedTech Dive 器械媒体",
       "kind": "rss",
-      "config": {
-        "feedUrl": "https://github.blog/ai-and-ml/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "first_party": true,
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
+      "config": { "feedUrl": "https://www.medtechdive.com/feeds/news/", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T2", "first_party": false, "participation_mode": "editorial",
+      "interval_minutes": 60, "tags": ["产业媒体", "器械"], "site_fulltext": false, "syndicate_fulltext": false
     },
     {
-      "id": "rss-mistral",
-      "name": "Mistral AI",
+      "id": "rss-endpoints",
+      "name": "Endpoints News 生物医药媒体",
       "kind": "rss",
-      "config": {
-        "feedUrl": "https://mistral.ai/rss.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "first_party": true,
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
+      "config": { "feedUrl": "https://endpts.com/feed", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T2", "first_party": false, "participation_mode": "editorial",
+      "interval_minutes": 60, "tags": ["专业媒体", "创新药"], "site_fulltext": false, "syndicate_fulltext": false
     },
     {
-      "id": "rss-bair",
-      "name": "Berkeley AI Research",
+      "id": "rss-biopharmadive",
+      "name": "BioPharma Dive",
       "kind": "rss",
-      "config": {
-        "feedUrl": "https://bair.berkeley.edu/blog/feed.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "first_party": true,
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 180,
-      "tags": [
-        "研究"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
+      "config": { "feedUrl": "https://www.biopharmadive.com/feeds/news/", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T2", "first_party": false, "participation_mode": "editorial",
+      "interval_minutes": 120, "tags": ["产业媒体", "创新药"], "site_fulltext": false, "syndicate_fulltext": false
     },
     {
-      "id": "rss-the-verge-ai",
-      "name": "The Verge · AI",
+      "id": "rss-drug-discovery-trends",
+      "name": "Drug Discovery & Development",
       "kind": "rss",
-      "config": {
-        "feedUrl": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "first_party": false,
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 60,
-      "tags": [
-        "媒体"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
+      "config": { "feedUrl": "https://www.drugdiscoverytrends.com/feed", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T2", "first_party": false, "participation_mode": "editorial",
+      "interval_minutes": 120, "tags": ["产业媒体", "研发"], "site_fulltext": false, "syndicate_fulltext": false
     },
     {
-      "id": "rss-techcrunch-ai",
-      "name": "TechCrunch · AI",
-      "kind": "rss",
+      "id": "web-nhsa-col105",
+      "name": "国家医保局·政策解读",
+      "kind": "web_list",
       "config": {
-        "feedUrl": "https://techcrunch.com/category/artificial-intelligence/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "url": "https://www.nhsa.gov.cn/col/col105/index.html",
+        "baseUrl": "https://www.nhsa.gov.cn",
+        "parseMode": "html",
+        "itemSelector": "li",
+        "linkSelector": "a",
+        "titleSelector": "a",
+        "_aihot": { "initialBackfillLimit": 8 }
       },
-      "tier": "T2",
-      "first_party": false,
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 60,
-      "tags": [
-        "媒体"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-ars-technica-ai",
-      "name": "Ars Technica · AI",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://arstechnica.com/ai/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "first_party": false,
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 60,
-      "tags": [
-        "媒体"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-mit-tech-review-ai",
-      "name": "MIT Technology Review · AI",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://www.technologyreview.com/topic/artificial-intelligence/feed",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "first_party": false,
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "媒体"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-the-decoder",
-      "name": "The Decoder",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://the-decoder.com/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "first_party": false,
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 60,
-      "tags": [
-        "媒体"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-simon-willison",
-      "name": "Simon Willison",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://simonwillison.net/atom/everything/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "first_party": false,
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "个人"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-import-ai",
-      "name": "Import AI",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://importai.substack.com/feed",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "first_party": false,
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 180,
-      "tags": [
-        "个人",
-        "周刊"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-latent-space",
-      "name": "Latent Space",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://www.latent.space/feed",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "first_party": false,
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 180,
-      "tags": [
-        "个人"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
+      "tier": "T1", "first_party": false, "owner_entity_id": "nhsa", "participation_mode": "editorial",
+      "interval_minutes": 120, "tags": ["官方", "医保"], "site_fulltext": false, "syndicate_fulltext": false
     }
   ]
 }

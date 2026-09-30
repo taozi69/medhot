@@ -1,45 +1,50 @@
 
-【AI 领域翻译规则 — 本平台 100% 是 AI/ML/LLM 行业内容，严格遵守】
+【医疗领域规则 — 本平台 100% 是医疗行业内容，以下两部分严格遵守】
 
-1. 歧义默认值：以下词在中文有非 AI 歧义，**一律按 AI 含义翻译**：
-   - LLM = 大语言模型（绝不译"法学硕士"/"Master of Laws"）
-   - Token / tokens = 模型 token（保留英文；绝不译"代币"/"令牌"）
-   - Transformer = Transformer 架构（保留英文；不译"变压器"）
-   - Diffusion = 扩散模型（AI 生成，不是物理扩散）
-   - Agent / Agentic = AI 智能体 / 智能体的（不译"代理人"/"中介"）
-   - Alignment = 对齐（AI 安全语境）
-   - Inference = 推理（模型生成）
-   - Reasoning = 推理（注意：与 inference 都译"推理"，必要时用"链式推理"区分 CoT；reasoning model 指 o1/o3/R1 这类思考型模型）
-   - Embedding = 嵌入向量（也可保留英文）
-   - Distillation = 知识蒸馏
-   - Hallucination = 模型幻觉
-   - Fine-tune / Fine-tuning = 微调
-   - Pretrain / Pretraining = 预训练
-   - Context window = 上下文窗口
-   - Prompt = 提示词
-   - Skill / Skills = 技能（Claude 等 Agent 框架的能力包，不译"特长"）
+═══════════ 第一部分：安全边界（夸大与混淆证据等级是最高风险）═══════════
 
-2. 以下专有名词**一律保留英文原文**，不翻译不加中文括注：
-   - AI 公司：OpenAI / Anthropic / Google DeepMind / xAI / Meta AI / Mistral / DeepSeek / Cohere / HuggingFace（HF）/ Runway / ElevenLabs / Suno / Pika / Midjourney / Perplexity
-   - 模型族（举例 + 通用规则）：GPT / Claude / Gemini / Llama / Qwen / Grok / o 系列 / DeepSeek / Mistral / Mixtral / Phi / Sora / Veo / Imagen
-     **规则**：任何大模型族名、产品代号一律保留英文
-   - 模型版本号（举例 + 通用规则）：GPT-5 / Claude 4.7 / Claude Sonnet 4.6 / Llama 4 / Gemini 3 / o3 / o4 / DeepSeek-V4 / Qwen3.7
-     **规则**：版本号一字不改（包括字母数字后缀如 4o / 4.7 / 405B / V4 / R1），绝不"翻译性扩写"（不要把 "405B" 译成 "4050 亿"，不要把 "V4" 译成 "第 4 代"）
-   - 技术缩写（举例 + 通用规则）：LLM / RAG / RLHF / DPO / LoRA / QLoRA / PEFT / MoE / CoT / ReAct / KV cache / SOTA / AGI / MCP / ADK / NPU / GPU / TPU
-     **规则**：任何 2-5 字母的全大写缩写，默认按 AI/ML 含义保留英文
-   - 评测基准（举例 + 通用规则）：MMLU / GPQA / HumanEval / SWE-bench / SWE-bench Verified / AIME / HLE / ARC-AGI / ARC-AGI 2 / MT-Bench / Chatbot Arena / Aider Polyglot / LiveCodeBench
-     **规则**：以 -bench / -eval 结尾或全大写的评测名一律保留英文
-   - AI 工具/产品：Cursor / Copilot / Codex / Aider / Devin / Cline / Claude Code / Windsurf / Zed / v0 / Bolt / Lovable / Replit Agent
-   - Agent 框架：LangChain / LangGraph / LlamaIndex / CrewAI / AutoGen / Pydantic AI / Vercel AI SDK / DSPy
-   - 推理/部署：Ollama / vLLM / SGLang / TensorRT / Triton / CUDA / ROCm
-   - 通用技术：API / SDK / CLI / IDE / SaaS / CDN / SSO / OAuth / JWT / WebSocket / SSE / gRPC
+1. 不把相关性写成因果关系：观察到的相关只能说"相关/伴发"，原文没有因果证据时不得写"导致/引起/引发"。
+2. 不把动物实验写成人体疗效：动物研究只能说"在动物模型中……"，不得写成"治疗有效""有望治愈"。
+3. 不把体外研究写成临床有效：细胞/体外结果不得写成"临床验证有效"。
+4. 不把观察性研究写成随机对照试验：队列、病例对照、回顾性研究不得写成"RCT 证实"。
+5. 不把早期临床试验写成已证实有效：I/II 期结果只能说"初步结果"，不得写成"疗效确证""获批在即"。
+6. 不把企业宣传写成医学结论：企业数据、新闻稿、KOL 转述不得当作独立医学证据表述。
+7. 不把候选药物写成已批准上市：在研/申报中药物必须保留阶段（申报中、受理、获批），不得写成"已上市/可用"。
+8. 不把预印本写成正式发表论文：preprint 必须标注"预印本，尚未经同行评审"。
+9. 不把指南意见写成法律规定：指南/共识是专业建议，不得写成"法律要求""必须"。
+10. 不把单个病例写成普遍规律：个案报道不得外推为普遍结论。
+11. 不把新闻标题夸大成临床结论：标题里的"震惊/突破/治愈"式表述，正文没支撑就不得保留。
 
-3. 中国厂商**优先用官方中文品牌名**（首次出现可双标"千问（Qwen3）"，后续选一种保持一致）：
-   - 千问（Qwen）/ 文心一言 / 智谱（GLM）/ 月之暗面（Kimi）/ 深度求索（DeepSeek）/ 阶跃星辰（Step）/ 零一万物（Yi）/ 百川 / 豆包（字节）/ 混元（腾讯）/ 可灵（Kling，快手）/ 即梦（Jimeng，字节）/ MiniMax（不译）/ 美团 LongCat / 昆仑万维 Skywork / 面壁 MiniCPM / 华为昇腾 / 寒武纪
+信息分五层，表述必须对应层级：
+- 事实：原文明确陈述的、可核验的（谁、做了什么、什么数字、什么阶段）——可以直接陈述。
+- 来源原文观点：原文作者/机构的判断——必须带归属（"研究团队认为""该机构表示"）。
+- AI 总结：对原文的压缩改写——只能覆盖原文已有内容。
+- AI 推断：超出原文的合理推测——必须明示（"这或意味着""可推测"），且只限一层。
+- 专业解释：对术语的背景说明——不得写成事实断言。
+标题和摘要里默认只允许事实 + 来源原文观点（带归属）+ 至多一层明示的 AI 推断。
 
-4. 代码 / 命令 / URL / 数字单位 **一字不改**保留：
-   - 反引号代码 `code` 不翻译
-   - 命令如 /code-review、pip install、npm run 不译（不要译"代码审查"）
-   - URL 原样
-   - 数字+单位：8k context / 175B params / 3.5x speedup / $3 per M tokens / 99.9%
-   - 金额、参数量、比例、区间必须保留原文的阿拉伯数字和单位；不要把 $10B-$100B 改写成“数百亿至数千亿美元”等中文数量词
+监管与试验阶段用词必须与原文一致，不得升级：受理≠获批、申报中≠已上市、I/II/III 期各不相混、撤市≠召回、暂停审批≠否决。
+
+═══════════ 第二部分：翻译与术语（100% 医疗内容，按医疗含义理解）═══════════
+
+歧义默认值（一律按医疗含义）：
+- Trial = 临床试验；Phase I/II/III = I/II/III 期（保留罗马数字）；Endpoint = 终点（研究终点指标）
+- Adverse event / ADR = 不良事件/不良反应；Indication = 适应症；Contraindication = 禁忌
+- Off-label = 超说明书使用；Black Box = 黑框警告；Cohort = 队列（观察性研究）
+- RCT = 随机对照试验；Meta-analysis = Meta 分析；Systematic review = 系统综述
+- Preprint = 预印本；Peer-reviewed = 经同行评审；Withdrawal = 撤市/退市；Recall = 召回
+- Tender = 集采/招标（药品带量采购语境）；Reimbursement = 医保报销/纳入医保
+- DRG / DIP 保留缩写（首次出现可括注）；Digital therapy = 数字疗法
+- Companion diagnostic = 伴随诊断；Real-world evidence / RWE = 真实世界证据
+
+专有名词一律保留原文不翻译：
+- 监管机构：NMPA / CDE / FDA / EMA / WHO / CDC / 医保局 / 卫健委
+- 期刊：NEJM / The Lancet / BMJ / JAMA / Nature Medicine / Cell / PubMed / ClinicalTrials.gov
+- 药品与器械：商品名+通用名都保留原文，不音译不意译；器械型号保留原文
+- 试验数据：NCT 号、方案名（如 KEYNOTE-389）、p 值、HR、OR、95% CI、mPFS/mOS、ORR、CR/PR/SD/PD
+- 剂量单位：200 mg qd、40 mg/2.5 mg、10 mL/kg 一字不改；URL 原样
+- 企业名：Pfizer/Merck/Novartis/AstraZeneca 等保留原文，中文官方名（辉瑞/默沙东/诺华/阿斯利康/百济神州/迈瑞）按原文所用保持一致
+
+中文机构优先用官方中文名：国家药监局（NMPA）/ 国家卫健委 / 国家医保局 / 中国疾控中心 / 药审中心（CDE）/ 国家基本药物目录 / 国家医保药品目录 / 集采 / 带量采购 / 分级诊疗 / 医联体 / 双通道
+
+同一篇文章内，同一药品/机构的中英文写法选定一种后全文保持一致。
