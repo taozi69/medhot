@@ -1,109 +1,1614 @@
 {
-  "$comment": "医疗版示范信源：首次启动时导入（scripts/seed.ts），已存在的不会被覆盖。之后在后台“信源”里增删改。分级：T1 政府/监管官方（NMPA/卫健委/医保局/CDC/WHO/FDA/EMA）；T1.5 医学会/大学医院/科研机构官方；T2 高质量期刊与专业媒体；T3 产业媒体与企业（participation_mode=hot_signal 的只作热度证据，不靠它进精选）。注意：NMPA、国家卫健委官网有 JS 反爬、FDA/EMA 无官方 RSS，未放进种子，请在后台用 web_list 配代理或 external 推送补上；企业宣传稿一律标 hot_signal（营销属性，只作传播证据，不写进精选结论）。",
+  "$comment": "M2 医疗行业包（74 信源）：首次启动时导入（scripts/seed.ts），已存在的不会被覆盖。之后在后台“信源”里增删改。分级：T1 政府/监管官方（医保局/CDC/WHO 等）；T1.5 医学会/科研机构官方；T2 高质量期刊与专业媒体。国内官方骨干：gov.cn ZUIXINZHENGCE.json + NHSA col105/col14/col20（TRS 数据岛直抓）+ NHC xwdt（Jina markdown）+ chinacdc/most/cas/cma/cmda（web_list）。IVD 专项：ivdchina/iivd/lablogatory/dark-report/instrument。国际 RSS 37 条覆盖 NEJM/Lancet/BMJ/JAMA/Nature 系/STAT/Fierce/Endpoints 等。注意：NMPA/SATCM/NSFC/CICAMS/PUMCH/NCCL/CAIVD/Medsci/Menet/VBData/Caixin/CLS/CN-Healthcare 因反爬或无法稳定解析发布时间未入种子，请在后台用 web_list 配代理或 external 推送补上。",
   "sources": [
     {
       "id": "rss-nejm",
       "name": "NEJM 新英格兰医学杂志",
       "kind": "rss",
-      "config": { "feedUrl": "https://www.nejm.org/action/showFeed?type=etoc&feed=rss&jc=nejm", "_aihot": { "initialBackfillLimit": 8 } },
-      "tier": "T2", "first_party": false, "owner_entity_id": "nejm", "participation_mode": "editorial",
-      "interval_minutes": 180, "tags": ["期刊", "顶刊"], "site_fulltext": false, "syndicate_fulltext": false
+      "config": {
+        "feedUrl": "https://www.nejm.org/action/showFeed?type=etoc&feed=rss&jc=nejm",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "期刊",
+        "顶刊"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     },
     {
       "id": "rss-lancet",
       "name": "The Lancet 柳叶刀",
       "kind": "rss",
-      "config": { "feedUrl": "https://www.thelancet.com/action/showFeed?type=etoc&feed=rss&jc=lancet", "_aihot": { "initialBackfillLimit": 8 } },
-      "tier": "T2", "first_party": false, "owner_entity_id": "lancet", "participation_mode": "editorial",
-      "interval_minutes": 180, "tags": ["期刊", "顶刊"], "site_fulltext": false, "syndicate_fulltext": false
+      "config": {
+        "feedUrl": "https://www.thelancet.com/rssfeed/lancet_current.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "期刊",
+        "顶刊"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lancet-id",
+      "name": "The Lancet Infectious Diseases",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.thelancet.com/action/showFeed?type=etoc&feed=rss&jc=laninf",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "感染"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lancet-resp",
+      "name": "The Lancet Respiratory Medicine",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.thelancet.com/action/showFeed?type=etoc&feed=rss&jc=lanres",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "呼吸"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-bmj",
+      "name": "BMJ 英国医学杂志",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.bmj.com/rss/recent.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "期刊",
+        "顶刊"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-bmj-open",
+      "name": "BMJ Open",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "http://bmjopen.bmj.com/rss/recent.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-jama",
+      "name": "JAMA",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://jamanetwork.com/rss/site_3/67.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "期刊",
+        "顶刊"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     },
     {
       "id": "rss-nature-medicine",
       "name": "Nature Medicine",
       "kind": "rss",
-      "config": { "feedUrl": "https://www.nature.com/nm.rss", "_aihot": { "initialBackfillLimit": 8 } },
-      "tier": "T2", "first_party": false, "participation_mode": "editorial",
-      "interval_minutes": 180, "tags": ["期刊"], "site_fulltext": false, "syndicate_fulltext": false
+      "config": {
+        "feedUrl": "https://www.nature.com/nm.rss",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "期刊",
+        "顶刊"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     },
     {
-      "id": "rss-nature-reviews-cancer",
-      "name": "Nature Reviews Cancer",
+      "id": "rss-nature-nbt",
+      "name": "Nature Biotechnology",
       "kind": "rss",
-      "config": { "feedUrl": "https://www.nature.com/nrc.rss", "_aihot": { "initialBackfillLimit": 8 } },
-      "tier": "T2", "first_party": false, "participation_mode": "editorial",
-      "interval_minutes": 360, "tags": ["期刊", "肿瘤"], "site_fulltext": false, "syndicate_fulltext": false
+      "config": {
+        "feedUrl": "https://www.nature.com/nbt.rss",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "生物技术"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     },
     {
-      "id": "rss-arxiv-qbionmn",
-      "name": "arXiv q-bio.MN（分子生物学预印本）",
+      "id": "rss-nature-nri",
+      "name": "Nature Reviews Immunology",
       "kind": "rss",
-      "config": { "feedUrl": "https://rss.arxiv.org/rss/q-bio.MN", "_aihot": { "initialBackfillLimit": 8 } },
-      "tier": "T2", "first_party": false, "participation_mode": "editorial",
-      "interval_minutes": 360, "tags": ["预印本"], "site_fulltext": false, "syndicate_fulltext": false
+      "config": {
+        "feedUrl": "https://www.nature.com/nri.rss",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "免疫"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-nature-nrm",
+      "name": "Nature Reviews Microbiology",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.nature.com/nrmicro.rss",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "微生物"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-nature-nrn",
+      "name": "Nature Reviews Neurology",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.nature.com/nrn.rss",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "神经"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-nature-immunol",
+      "name": "Nature Immunology",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.nature.com/ni.rss",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "免疫"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-nature-nm-covid",
+      "name": "Nature 健康护理主题",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.nature.com/subjects/health-care.rss",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-who-news",
+      "name": "WHO 世界卫生组织",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.who.int/rss-feeds/news-english.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "官方",
+        "公共卫生"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-cdc-news",
+      "name": "US CDC 新闻room",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://tools.cdc.gov/api/v2/resources/media/132608.rss",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "官方",
+        "公共卫生"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     },
     {
       "id": "rss-stat-news",
-      "name": "STAT 专业医疗媒体",
+      "name": "STAT 主站",
       "kind": "rss",
-      "config": { "feedUrl": "https://www.statnews.com/feed/", "_aihot": { "initialBackfillLimit": 8 } },
-      "tier": "T2", "first_party": false, "participation_mode": "editorial",
-      "interval_minutes": 60, "tags": ["专业媒体"], "site_fulltext": true, "syndicate_fulltext": false
+      "config": {
+        "feedUrl": "https://www.statnews.com/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "专业媒体"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     },
     {
       "id": "rss-stat-pharma",
-      "name": "STAT 医药频道",
+      "name": "STAT Pharma 医药频道",
       "kind": "rss",
-      "config": { "feedUrl": "https://www.statnews.com/category/pharma/feed/", "_aihot": { "initialBackfillLimit": 8 } },
-      "tier": "T2", "first_party": false, "participation_mode": "editorial",
-      "interval_minutes": 60, "tags": ["专业媒体", "药品"], "site_fulltext": true, "syndicate_fulltext": false
+      "config": {
+        "feedUrl": "https://www.statnews.com/category/pharma/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "专业媒体",
+        "药品"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-medpage",
+      "name": "MedPage Today",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.medpagetoday.com/rss/headlines.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "专业媒体"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-mayo",
+      "name": "Mayo Clinic News Network",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://newsnetwork.mayoclinic.org/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "医学中心"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-kff",
+      "name": "KFF Health News",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://kffhealthnews.org/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "专业媒体",
+        "政策"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-healthcare-dive",
+      "name": "Healthcare Dive",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.healthcaredive.com/feeds/news/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "产业媒体",
+        "医院"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-pharmatimes",
+      "name": "PharmaTimes",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.pharmatimes.com/rss",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "产业媒体",
+        "药品"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     },
     {
       "id": "rss-medtechdive",
       "name": "MedTech Dive 器械媒体",
       "kind": "rss",
-      "config": { "feedUrl": "https://www.medtechdive.com/feeds/news/", "_aihot": { "initialBackfillLimit": 8 } },
-      "tier": "T2", "first_party": false, "participation_mode": "editorial",
-      "interval_minutes": 60, "tags": ["产业媒体", "器械"], "site_fulltext": false, "syndicate_fulltext": false
+      "config": {
+        "feedUrl": "https://www.medtechdive.com/feeds/news/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "产业媒体",
+        "器械"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     },
     {
       "id": "rss-endpoints",
-      "name": "Endpoints News 生物医药媒体",
+      "name": "Endpoints News 生物医药",
       "kind": "rss",
-      "config": { "feedUrl": "https://endpts.com/feed", "_aihot": { "initialBackfillLimit": 8 } },
-      "tier": "T2", "first_party": false, "participation_mode": "editorial",
-      "interval_minutes": 60, "tags": ["专业媒体", "创新药"], "site_fulltext": false, "syndicate_fulltext": false
+      "config": {
+        "feedUrl": "https://endpts.com/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "专业媒体",
+        "创新药"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     },
     {
       "id": "rss-biopharmadive",
       "name": "BioPharma Dive",
       "kind": "rss",
-      "config": { "feedUrl": "https://www.biopharmadive.com/feeds/news/", "_aihot": { "initialBackfillLimit": 8 } },
-      "tier": "T2", "first_party": false, "participation_mode": "editorial",
-      "interval_minutes": 120, "tags": ["产业媒体", "创新药"], "site_fulltext": false, "syndicate_fulltext": false
+      "config": {
+        "feedUrl": "https://www.biopharmadive.com/feeds/news/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "产业媒体",
+        "创新药"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     },
     {
-      "id": "rss-drug-discovery-trends",
-      "name": "Drug Discovery & Development",
+      "id": "rss-fierce-biotech",
+      "name": "Fierce Biotech",
       "kind": "rss",
-      "config": { "feedUrl": "https://www.drugdiscoverytrends.com/feed", "_aihot": { "initialBackfillLimit": 8 } },
-      "tier": "T2", "first_party": false, "participation_mode": "editorial",
-      "interval_minutes": 120, "tags": ["产业媒体", "研发"], "site_fulltext": false, "syndicate_fulltext": false
+      "config": {
+        "feedUrl": "https://feeds.feedburner.com/fiercebiotech",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "产业媒体",
+        "生物技术"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-fierce-pharma",
+      "name": "Fierce Pharma",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://feeds.feedburner.com/FiercePharma",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "产业媒体",
+        "药品"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-genengnews",
+      "name": "GEN Genetic Engineering & Biotech",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.genengnews.com/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "产业媒体",
+        "生物技术"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-sciencedaily",
+      "name": "ScienceDaily Health & Medicine",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.sciencedaily.com/rss/health_medicine.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "科普"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-medicalxpress",
+      "name": "Medical Xpress",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://medicalxpress.com/rss-feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "科普"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-beckers",
+      "name": "Becker's Hospital Review",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.beckershospitalreview.com/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "产业媒体",
+        "医院"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-outbreaktoday",
+      "name": "Outbreak News Today 传染病",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://outbreaknewstoday.com/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "公共卫生",
+        "感染"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-contagion",
+      "name": "Contagion Live 感染",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.contagionlive.com/rss",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "感染",
+        "公共卫生"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lablogatory",
+      "name": "Lablogatory 实验室医学博客",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.labmedicineblog.com/feed",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "检验"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-dark-report",
+      "name": "The Dark Report 实验室管理",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.darkintelligencegroup.com/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "检验",
+        "实验室管理"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-arxiv-qbionmn",
+      "name": "arXiv q-bio.MN 分子生物学预印本",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://rss.arxiv.org/rss/q-bio.MN",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "预印本"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     },
     {
       "id": "web-nhsa-col105",
       "name": "国家医保局·政策解读",
       "kind": "web_list",
       "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
         "url": "https://www.nhsa.gov.cn/col/col105/index.html",
         "baseUrl": "https://www.nhsa.gov.cn",
         "parseMode": "html",
         "itemSelector": "li",
-        "linkSelector": "a",
-        "titleSelector": "a",
-        "_aihot": { "initialBackfillLimit": 8 }
+        "linkSelector": "a[target=_blank]",
+        "titleSelector": "a[title]",
+        "publishedAtSelector": "span"
       },
-      "tier": "T1", "first_party": false, "owner_entity_id": "nhsa", "participation_mode": "editorial",
-      "interval_minutes": 120, "tags": ["官方", "医保"], "site_fulltext": false, "syndicate_fulltext": false
+      "tier": "T1",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "官方",
+        "医保"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-nhsa-col14",
+      "name": "国家医保局·通知公告",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.nhsa.gov.cn/col/col14/index.html",
+        "baseUrl": "https://www.nhsa.gov.cn",
+        "parseMode": "html",
+        "itemSelector": "li",
+        "linkSelector": "a[target=_blank]",
+        "titleSelector": "a[title]",
+        "publishedAtSelector": "span"
+      },
+      "tier": "T1",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "官方",
+        "医保",
+        "集采"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-nhsa-col20",
+      "name": "国家医保局·动态",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.nhsa.gov.cn/col/col20/index.html",
+        "baseUrl": "https://www.nhsa.gov.cn",
+        "parseMode": "html",
+        "itemSelector": "li",
+        "linkSelector": "a[target=_blank]",
+        "titleSelector": "a[title]",
+        "publishedAtSelector": "span"
+      },
+      "tier": "T1",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "官方",
+        "医保"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "json-gov-zuixin",
+      "name": "中国政府网·最新政策",
+      "kind": "json_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.gov.cn/zhengce/zuixin/ZUIXINZHENGCE.json",
+        "itemsPath": "",
+        "titlePaths": [
+          "TITLE"
+        ],
+        "publishedAtPath": "DOCRELPUBTIME",
+        "urlTemplate": "${URL}"
+      },
+      "tier": "T1",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "官方",
+        "政策发布"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "jina-nhc-xwdt",
+      "name": "国家卫健委·新闻动态",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://r.jina.ai/https://www.nhc.gov.cn/wjw/xwdt/list.shtml",
+        "baseUrl": "https://www.nhc.gov.cn"
+      },
+      "tier": "T1",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "官方",
+        "卫健委"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-chinacdc",
+      "name": "中国疾控中心·要闻",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.chinacdc.cn/",
+        "baseUrl": "https://www.chinacdc.cn",
+        "parseMode": "html",
+        "itemSelector": "li",
+        "linkSelector": "a[href*='/zxyw/']"
+      },
+      "tier": "T1",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "官方",
+        "疾控"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-most",
+      "name": "科技部·要闻",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.most.gov.cn/index.html",
+        "baseUrl": "https://www.most.gov.cn",
+        "parseMode": "html",
+        "itemSelector": "li",
+        "linkSelector": "a[href*='/20']"
+      },
+      "tier": "T1",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "官方",
+        "科研管理"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-cas-syky",
+      "name": "中国科学院·科研动态",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.cas.cn/syky/",
+        "baseUrl": "https://www.cas.cn",
+        "parseMode": "html",
+        "itemSelector": "li",
+        "linkSelector": "a[href*='.shtml']",
+        "publishedAtRegex": "(20\\d{2})年(\\d{2})月(\\d{2})"
+      },
+      "tier": "T1",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "官方",
+        "科研"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-cma",
+      "name": "中华医学会·动态",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.cma.org.cn/col/col10/index.html",
+        "baseUrl": "https://www.cma.org.cn",
+        "parseMode": "html",
+        "itemSelector": "li",
+        "linkSelector": "a[href*='/art/']",
+        "publishedAtRegex": "/art/(\\d{4})/(\\d{1,2})/(\\d{1,2})/"
+      },
+      "tier": "T1_5",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "医学会"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-cmda",
+      "name": "中国医师协会·今日头条",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.cmda.net/",
+        "baseUrl": "https://www.cmda.net",
+        "parseMode": "html",
+        "itemSelector": "li",
+        "linkSelector": "a[href*='.jhtml']"
+      },
+      "tier": "T1_5",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "医师协会"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-yaozh",
+      "name": "药智新闻",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://news.yaozh.com/",
+        "baseUrl": "https://news.yaozh.com",
+        "parseMode": "html",
+        "itemSelector": "a[href*='/archive/']"
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "医药媒体"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-haoyisheng",
+      "name": "好医生频道",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.haoyisheng.com/news",
+        "baseUrl": "https://www.haoyisheng.com",
+        "parseMode": "html",
+        "itemSelector": "a[href*='/yj/news/']"
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "医药媒体"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-phirda",
+      "name": "中国医药创新促进会·产业资讯",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.phirda.com/news_9.html",
+        "baseUrl": "https://www.phirda.com",
+        "parseMode": "html",
+        "itemSelector": "li",
+        "linkSelector": "a[href*='artilce_']"
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "医药媒体",
+        "创新药"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-bioon",
+      "name": "生物谷·资讯",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://news.bioon.com/",
+        "baseUrl": "https://news.bioon.com",
+        "parseMode": "html",
+        "itemSelector": "a[href*='/article/']"
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "生物医药"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-instrument",
+      "name": "仪器信息网·生命科学",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.instrument.com.cn/news/",
+        "baseUrl": "https://www.instrument.com.cn",
+        "parseMode": "html",
+        "itemSelector": "a[href*='.shtml']"
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "科学仪器"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-ivdchina",
+      "name": "检验视界网·IVD 资讯",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.ivdchina.org/",
+        "baseUrl": "https://www.ivdchina.org",
+        "parseMode": "html",
+        "itemSelector": "a[href*='show']"
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "检验",
+        "IVD"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-iivd",
+      "name": "小桔灯网·IVD 社区",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.iivd.net/forum.php",
+        "baseUrl": "https://www.iivd.net",
+        "parseMode": "html",
+        "itemSelector": "a.xst"
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "检验",
+        "IVD"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lancet-hiv",
+      "name": "The Lancet HIV",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.thelancet.com/action/showFeed?type=etoc&feed=rss&jc=lanhiv",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "感染"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lancet-onc",
+      "name": "The Lancet Oncology",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.thelancet.com/action/showFeed?type=etoc&feed=rss&jc=lanonc",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "肿瘤"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lancet-diab",
+      "name": "The Lancet Diabetes & Endocrinology",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.thelancet.com/action/showFeed?type=etoc&feed=rss&jc=landia",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "内分泌"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lancet-gastro",
+      "name": "The Lancet Gastroenterology & Hepatology",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.thelancet.com/action/showFeed?type=etoc&feed=rss&jc=langas",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "消化"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lancet-haem",
+      "name": "The Lancet Haematology",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.thelancet.com/action/showFeed?type=etoc&feed=rss&jc=lanhae",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "血液"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lancet-psy",
+      "name": "The Lancet Psychiatry",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.thelancet.com/action/showFeed?type=etoc&feed=rss&jc=lanpsy",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "精神"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lancet-pubhealth",
+      "name": "The Lancet Public Health",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.thelancet.com/action/showFeed?type=etoc&feed=rss&jc=lanpub",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "公共卫生"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-bmj-gut",
+      "name": "Gut 消化",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "http://gut.bmj.com/rss/recent.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "消化"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-bmj-thorax",
+      "name": "Thorax 呼吸",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "http://thorax.bmj.com/rss/recent.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "呼吸"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-bmj-jnnp",
+      "name": "JNNP 神经病学",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "http://jnnp.bmj.com/rss/recent.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "神经"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-bmj-sti",
+      "name": "STI 性传播感染",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "http://sti.bmj.com/rss/recent.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "感染"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-bmj-ard",
+      "name": "ARD 风湿病年鉴",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "http://ard.bmj.com/rss/recent.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "风湿免疫"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-bmj-archdis",
+      "name": "Archives of Disease in Childhood 儿科",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "http://adc.bmj.com/rss/recent.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "儿科"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-bmj-gph",
+      "name": "BMJ Global Health 全球健康",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "http://gh.bmj.com/rss/recent.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "公共卫生"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-nature-main",
+      "name": "Nature 综合主刊",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.nature.com/nature.rss",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "期刊",
+        "综合科学"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-nejm-ai",
+      "name": "NEJM AI 医疗人工智能",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.nejm.org/action/showFeed?type=etoc&feed=rss&jc=ai",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "医疗AI"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-jco",
+      "name": "Journal of Clinical Oncology 临床肿瘤",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://ascopubs.org/action/showFeed?type=etoc&feed=rss&jc=jco",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "肿瘤"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-chest",
+      "name": "Chest 呼吸与危重症",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://journal.chestnet.org/action/showFeed?type=etoc&feed=rss&jc=chest",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "呼吸"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-nature-reviews-cancer",
+      "name": "Nature Reviews Cancer",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.nature.com/nrc.rss",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "期刊",
+        "肿瘤"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-drug-discovery-trends",
+      "name": "Drug Discovery & Development",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.drugdiscoverytrends.com/feed",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "产业媒体",
+        "研发"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     }
   ]
 }

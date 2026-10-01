@@ -11,10 +11,10 @@ export const SELECTION = {
    *   T2 医学期刊与专业媒体（NEJM/Lancet/BMJ/JAMA、STAT 等）
    * 分级 EXCLUDE_MP 以及这里没有列出的分级，不参与精选评分（只进“全部动态”）。
    */
-  thresholds: { T1: 60, T1_5: 65, T2: 76 } as Record<string, number>,
+  thresholds: { T1: 50, T1_5: 55, T2: 62 } as Record<string, number>,
   /**
    * 没入选、但平均分高于这个数的资料，也用精选的写法（内容理解：标题、摘要、推荐理由、标签）来写，
-   * 其余用更便宜的“标题摘要翻译”。
+   * 其余用更便宜的“标题摘要翻译”。M2 简报 §6：50 → 45，解决首页精选太少/空白。
    */
-  understandFloor: 50,
+  understandFloor: 45,
 } as const;

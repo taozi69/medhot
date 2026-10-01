@@ -5,6 +5,7 @@ import type { z } from "zod";
 import { config, credential } from "../config.ts";
 import { sha256 } from "../lib/ids.ts";
 import { completeReceipt, paidRequest, ProviderRejectedError, rejectReceivedResponse } from "./receipts.ts";
+import { acquireEndpoint, poolApis, withFailover } from "./llm-pool.ts";
 import { sql } from "../db.ts";
 
 export interface ModelSpec {
@@ -161,83 +162,104 @@ export async function chatJson<S extends z.ZodType>(opts: ChatJsonOptions<S>): P
   const spec = MODELS[opts.model];
   if (!spec) throw new Error(`Unknown model ${opts.model}`);
   if (!config.modelCallsEnabled) throw new Error("Model calls are disabled (MODEL_CALLS_ENABLED=false)");
-  const baseUrl = credential("models", spec.baseUrlEnv);
-  const apiKey = credential("models", spec.apiKeyEnv);
-  if (!baseUrl || !apiKey || !spec.model) throw new Error(`Model ${opts.model} is not configured (${spec.baseUrlEnv}, ${spec.apiKeyEnv}${spec.key === "default" ? ", LLM_MODEL" : ""})`);
+  const pooled = spec.key === "default" && poolApis().length > 0;
 
   const temperature = opts.temperature ?? 0.2;
   const maxTokens = Math.max(opts.maxTokens ?? 1500, 512) + (spec.key.endsWith("-think") ? 4000 : 0);
   const userText = typeof opts.user === "string" ? opts.user : JSON.stringify(opts.user);
-  const body: Record<string, unknown> = {
-    model: spec.model,
-    messages: [
-      // A prompt given as one user message (the title/summary prompts) has no system message.
-      ...(opts.system ? [{ role: "system", content: opts.system }] : []),
-      // Multimodal parts go through as parts; plain objects are sent as JSON text.
-      { role: "user", content: typeof opts.user === "string" || Array.isArray(opts.user) ? opts.user : userText },
-    ],
-    temperature,
-    max_tokens: maxTokens,
-    ...(spec.jsonMode && opts.json !== false ? { response_format: { type: "json_object" } } : {}),
-    ...(spec.extra ?? {}),
+
+  const runOnce = async (): Promise<ChatJsonResult<z.infer<S>>> => {
+    // A pooled request picks its endpoint (base URL, key and model) from the pool;
+    // a non-pooled one keeps the old single-endpoint behaviour. Only the chosen
+    // endpoint's values are ever put on the wire — nothing is logged or stored.
+    const acquired = pooled ? await acquireEndpoint() : null;
+    const baseUrl = acquired?.api.baseUrl ?? credential("models", spec.baseUrlEnv);
+    const apiKey = acquired?.api.apiKey ?? credential("models", spec.apiKeyEnv);
+    const model = acquired?.api.model ?? spec.model;
+    if (!baseUrl || !apiKey || !model) {
+      if (acquired) acquired.release();
+      throw new Error(`Model ${opts.model} is not configured (${spec.baseUrlEnv}, ${spec.apiKeyEnv}${spec.key === "default" ? ", LLM_MODEL" : ""})`);
+    }
+
+    const body: Record<string, unknown> = {
+      model,
+      messages: [
+        // A prompt given as one user message (the title/summary prompts) has no system message.
+        ...(opts.system ? [{ role: "system", content: opts.system }] : []),
+        // Multimodal parts go through as parts; plain objects are sent as JSON text.
+        { role: "user", content: typeof opts.user === "string" || Array.isArray(opts.user) ? opts.user : userText },
+      ],
+      temperature,
+      max_tokens: maxTokens,
+      ...(spec.jsonMode && opts.json !== false ? { response_format: { type: "json_object" } } : {}),
+      ...(spec.extra ?? {}),
+    };
+
+    const receipt = await paidRequest(
+      {
+        service: spec.service,
+        model,
+        purpose: opts.purpose,
+        subject: opts.subject,
+        identity: { model, promptVersion: opts.promptVersion, system: sha256(opts.system), user: sha256(userText), temperature, maxTokens, extra: spec.extra ?? null },
+        requestSummary: { promptVersion: opts.promptVersion, systemHash: sha256(opts.system), userHash: sha256(userText), userChars: userText.length, temperature, maxTokens },
+        attemptTag: opts.attemptTag,
+      },
+      async () => {
+        const started = Date.now();
+        let res: Response;
+        try {
+          res = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
+            method: "POST",
+            headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+            body: JSON.stringify(body),
+            signal: AbortSignal.timeout(opts.timeoutMs ?? 120_000),
+          });
+        } catch (error) {
+          if (acquired) acquired.markFailed("connect failed");
+          if (isConnectFailure(error)) throw new ProviderRejectedError(`connect failed: ${String(error)}`, null, true);
+          throw error;
+        }
+        const text = await res.text();
+        if (!res.ok) {
+          const retryable = res.status === 429 || res.status >= 500;
+          if (acquired && retryable) acquired.markFailed(`HTTP ${res.status}`);
+          throw new ProviderRejectedError(`HTTP ${res.status}: ${text.slice(0, 500)}`, res.status, retryable);
+        }
+        let json: Record<string, unknown>;
+        try {
+          json = JSON.parse(text);
+        } catch {
+          json = { unparsable: text.slice(0, 20000) };
+        }
+        const usage = (json.usage as Record<string, unknown> | undefined) ?? null;
+        return {
+          response: { ...json, _latencyMs: Date.now() - started },
+          requestId: (json.id as string | undefined) ?? res.headers.get("x-request-id"),
+          usage,
+          cost: null,
+        };
+      },
+    );
+    if (acquired) acquired.release();
+
+    const response = receipt.response as { choices?: Array<{ message?: { content?: string }; finish_reason?: string }>; usage?: Record<string, unknown> };
+    const content = response.choices?.[0]?.message?.content ?? "";
+    let parsed: z.infer<S>;
+    try {
+      parsed = opts.schema.parse(opts.parse ? opts.parse(content) : extractJson(content));
+    } catch (error) {
+      // Unusable output: record it and let a later attempt pay for a fresh answer.
+      await rejectReceivedResponse(receipt.receiptId, `unusable output: ${String(error).slice(0, 500)}`);
+      throw new ModelOutputError(`Model ${opts.model} returned unusable output for ${opts.subject}: ${String(error).slice(0, 300)}`, receipt.receiptId);
+    }
+    return { data: parsed, receiptId: receipt.receiptId, reused: receipt.reused, model: spec.key, usage: response.usage ?? null };
   };
 
-  const receipt = await paidRequest(
-    {
-      service: spec.service,
-      model: spec.model,
-      purpose: opts.purpose,
-      subject: opts.subject,
-      identity: { model: spec.model, promptVersion: opts.promptVersion, system: sha256(opts.system), user: sha256(userText), temperature, maxTokens, extra: spec.extra ?? null },
-      requestSummary: { promptVersion: opts.promptVersion, systemHash: sha256(opts.system), userHash: sha256(userText), userChars: userText.length, temperature, maxTokens },
-      attemptTag: opts.attemptTag,
-    },
-    async () => {
-      const started = Date.now();
-      let res: Response;
-      try {
-        res = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
-          method: "POST",
-          headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
-          body: JSON.stringify(body),
-          signal: AbortSignal.timeout(opts.timeoutMs ?? 120_000),
-        });
-      } catch (error) {
-        if (isConnectFailure(error)) throw new ProviderRejectedError(`connect failed: ${String(error)}`, null, true);
-        throw error;
-      }
-      const text = await res.text();
-      if (!res.ok) {
-        const retryable = res.status === 429 || res.status >= 500;
-        throw new ProviderRejectedError(`HTTP ${res.status}: ${text.slice(0, 500)}`, res.status, retryable);
-      }
-      let json: Record<string, unknown>;
-      try {
-        json = JSON.parse(text);
-      } catch {
-        json = { unparsable: text.slice(0, 20000) };
-      }
-      const usage = (json.usage as Record<string, unknown> | undefined) ?? null;
-      return {
-        response: { ...json, _latencyMs: Date.now() - started },
-        requestId: (json.id as string | undefined) ?? res.headers.get("x-request-id"),
-        usage,
-        cost: null,
-      };
-    },
-  );
-
-  const response = receipt.response as { choices?: Array<{ message?: { content?: string }; finish_reason?: string }>; usage?: Record<string, unknown> };
-  const content = response.choices?.[0]?.message?.content ?? "";
-  let parsed: z.infer<S>;
-  try {
-    parsed = opts.schema.parse(opts.parse ? opts.parse(content) : extractJson(content));
-  } catch (error) {
-    // Unusable output: record it and let a later attempt pay for a fresh answer.
-    await rejectReceivedResponse(receipt.receiptId, `unusable output: ${String(error).slice(0, 500)}`);
-    throw new ModelOutputError(`Model ${opts.model} returned unusable output for ${opts.subject}: ${String(error).slice(0, 300)}`, receipt.receiptId);
-  }
-  return { data: parsed, receiptId: receipt.receiptId, reused: receipt.reused, model: spec.key, usage: response.usage ?? null };
+  // Provider failures (429 / 5xx / connect / timeout) retry up to two times across
+  // the pool; a healthy endpoint is picked on every attempt, so a failing one is
+  // skipped via its cooldown. Unusable output and model errors are not retried.
+  return withFailover(runOnce, (error) => error instanceof ProviderRejectedError && error.retryable);
 }
 
 export async function markReceiptsCompleted(ids: number[]): Promise<void> {
