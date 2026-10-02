@@ -48,7 +48,13 @@ export function useAdminAction() {
         const res = await fetch(path, {
           method,
           credentials: "same-origin",
-          headers: { "content-type": "application/json", "x-csrf-token": me.csrf, "idempotency-key": key },
+          // The JSON content-type only goes out with an actual body: Fastify rejects an
+          // empty body carrying "content-type: application/json" with a 400.
+          headers: {
+            ...(body === undefined ? {} : { "content-type": "application/json" }),
+            "x-csrf-token": me.csrf,
+            "idempotency-key": key,
+          },
           body: body === undefined ? undefined : JSON.stringify(body),
         });
         if (res.status === 401) {

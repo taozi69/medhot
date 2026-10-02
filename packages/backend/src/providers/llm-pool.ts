@@ -11,16 +11,18 @@
 //   ...
 //
 // Slot numbers need not be consecutive; a slot missing any of KEY / BASE_URL /
-// MODEL is skipped. Requests are spread round-robin across healthy endpoints.
-// An endpoint that returns 429 / 5xx / connection errors is marked failed and
-// cools down for LLM_POOL_COOLDOWN_MS (default 60s) before it is considered
-// again. Per-endpoint concurrency (LLM_API_N_MAX_CONCURRENCY, default 1) and a
-// global concurrency cap (LLM_GLOBAL_MAX_CONCURRENCY, default 20) are both
-// enforced.
+// MODEL is skipped. Endpoints can also be managed live from the admin (settings
+// key `llm_pool_apis`, see admin/llm-apis.ts); the two sources are merged, with
+// environment slots first. Requests are spread round-robin across healthy
+// endpoints. An endpoint that returns 429 / 5xx / connection errors is marked
+// failed and cools down for LLM_POOL_COOLDOWN_MS (default 60s) before it is
+// considered again. Per-endpoint concurrency (LLM_API_N_MAX_CONCURRENCY, default
+// 1) and a global concurrency cap (LLM_GLOBAL_MAX_CONCURRENCY, default 20) are
+// both enforced.
 //
-// With no LLM_API_* variables the pool reports no endpoints, and callers fall
-// back to the single LLM_BASE_URL / LLM_API_KEY / LLM_MODEL endpoint, so
-// existing deployments keep working unchanged.
+// With no LLM_API_* variables and no admin entries the pool reports no endpoints,
+// and callers fall back to the single LLM_BASE_URL / LLM_API_KEY / LLM_MODEL
+// endpoint, so existing deployments keep working unchanged.
 
 export interface PoolApi {
   id: string;
@@ -32,6 +34,9 @@ export interface PoolApi {
   failureCount: number;
   cooldownUntil: number;
   lastUsed: number;
+  /** Where the entry came from: an LLM_API_N_* slot or the admin-managed settings. */
+  source: "env" | "admin";
+  label?: string;
 }
 
 export interface AcquiredEndpoint {
@@ -99,21 +104,83 @@ export function discoverPoolApis(env: NodeJS.ProcessEnv = process.env): PoolApi[
       failureCount: 0,
       cooldownUntil: 0,
       lastUsed: 0,
+      source: "env",
     });
   }
   return apis;
 }
 
+interface AdminApiRecord {
+  id: string;
+  name?: string;
+  baseUrl?: string;
+  apiKey?: string;
+  model?: string;
+  maxConcurrency?: number;
+  enabled?: boolean;
+}
+
+/** Admin-managed endpoints (settings key `llm_pool_apis`); failures degrade to env-only. */
+async function adminPoolApis(): Promise<PoolApi[]> {
+  try {
+    const { sql } = await import("../db.ts");
+    const rows = await sql<{ value: { apis?: AdminApiRecord[] } | null }[]>`SELECT value FROM settings WHERE key = 'llm_pool_apis'`;
+    const records = rows[0]?.value?.apis ?? [];
+    return records
+      .filter((r) => r.enabled !== false && r.baseUrl?.trim() && r.apiKey?.trim() && r.model?.trim())
+      .map((r) => ({
+        id: `admin-${r.id}`,
+        baseUrl: r.baseUrl!.trim(),
+        apiKey: r.apiKey!.trim(),
+        model: r.model!.trim(),
+        maxConcurrency: Number.isFinite(r.maxConcurrency) && (r.maxConcurrency ?? 0) >= 1 ? r.maxConcurrency! : 1,
+        activeRequests: 0,
+        failureCount: 0,
+        cooldownUntil: 0,
+        lastUsed: 0,
+        source: "admin" as const,
+        label: r.name?.trim() || undefined,
+      }));
+  } catch {
+    // The settings table may not exist yet (first migrate) or the DB may be restarting;
+    // the pool keeps working with whatever the environment provides.
+    return [];
+  }
+}
+
 let pool: PoolApi[] | null = null;
+let poolLoadedAt = 0;
+const POOL_TTL_MS = 5_000;
 
 /** Re-scans the environment and returns the active pool. Exported for tests. */
 export function refreshPool(): PoolApi[] {
   pool = discoverPoolApis();
   cursor = 0; // a fresh scan restarts the rotation
+  poolLoadedAt = Date.now();
   return pool;
 }
 
-/** The active pool, lazily discovered once. */
+/** Drops the cached pool so the next poolApis() call re-reads env + admin settings. */
+export function invalidatePoolCache(): void {
+  pool = null;
+  poolLoadedAt = 0;
+}
+
+/**
+ * The active pool: environment slots plus admin-managed endpoints, re-read at most
+ * once per TTL so config changes from the admin reach every process without a restart.
+ */
+export async function poolApisAsync(): Promise<PoolApi[]> {
+  if (pool === null || Date.now() - poolLoadedAt > POOL_TTL_MS) {
+    const admin = await adminPoolApis();
+    pool = [...discoverPoolApis(), ...admin];
+    cursor = 0;
+    poolLoadedAt = Date.now();
+  }
+  return pool;
+}
+
+/** The cached pool without the settings re-read; lazily discovered once. */
 export function poolApis(): PoolApi[] {
   if (pool === null) pool = discoverPoolApis();
   return pool;
@@ -198,6 +265,8 @@ export async function acquireEndpoint(): Promise<AcquiredEndpoint> {
 /** Read-only health snapshot for the admin; never contains API keys. */
 export function poolHealth(): Array<{
   id: string;
+  source: string;
+  label?: string;
   baseUrl: string;
   model: string;
   activeRequests: number;
@@ -210,6 +279,8 @@ export function poolHealth(): Array<{
   const now = Date.now();
   return poolApis().map((api) => ({
     id: api.id,
+    source: api.source,
+    label: api.label,
     baseUrl: api.baseUrl,
     model: api.model,
     activeRequests: api.activeRequests,

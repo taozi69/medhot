@@ -5,7 +5,7 @@ import type { z } from "zod";
 import { config, credential } from "../config.ts";
 import { sha256 } from "../lib/ids.ts";
 import { completeReceipt, paidRequest, ProviderRejectedError, rejectReceivedResponse } from "./receipts.ts";
-import { acquireEndpoint, poolApis, withFailover } from "./llm-pool.ts";
+import { acquireEndpoint, poolApisAsync, withFailover } from "./llm-pool.ts";
 import { sql } from "../db.ts";
 
 export interface ModelSpec {
@@ -162,7 +162,7 @@ export async function chatJson<S extends z.ZodType>(opts: ChatJsonOptions<S>): P
   const spec = MODELS[opts.model];
   if (!spec) throw new Error(`Unknown model ${opts.model}`);
   if (!config.modelCallsEnabled) throw new Error("Model calls are disabled (MODEL_CALLS_ENABLED=false)");
-  const pooled = spec.key === "default" && poolApis().length > 0;
+  const pooled = spec.key === "default" && (await poolApisAsync()).length > 0;
 
   const temperature = opts.temperature ?? 0.2;
   const maxTokens = Math.max(opts.maxTokens ?? 1500, 512) + (spec.key.endsWith("-think") ? 4000 : 0);
