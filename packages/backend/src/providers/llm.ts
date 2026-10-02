@@ -6,6 +6,7 @@ import { config, credential } from "../config.ts";
 import { sha256 } from "../lib/ids.ts";
 import { completeReceipt, paidRequest, ProviderRejectedError, rejectReceivedResponse } from "./receipts.ts";
 import { acquireEndpoint, poolApisAsync, withFailover } from "./llm-pool.ts";
+import { shutdownSignal } from "../jobs/queue.ts";
 import { sql } from "../db.ts";
 
 export interface ModelSpec {
@@ -275,7 +276,9 @@ export async function chatJson<S extends z.ZodType>(opts: ChatJsonOptions<S>): P
   // Provider failures (429 / 5xx / connect / timeout) retry up to two times across
   // the pool; a healthy endpoint is picked on every attempt, so a failing one is
   // skipped via its cooldown. Unusable output and model errors are not retried.
-  return withFailover(runOnce, (error) => error instanceof ProviderRejectedError && error.retryable);
+  // A shutting-down worker never retries: the process wants to drain, and the
+  // retryable failure stays recorded as failed for the next process to pick up.
+  return withFailover(runOnce, (error) => !shutdownSignal.signal.aborted && error instanceof ProviderRejectedError && error.retryable);
 }
 
 export async function markReceiptsCompleted(ids: number[]): Promise<void> {
