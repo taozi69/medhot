@@ -1656,7 +1656,7 @@
         ],
         "detail": {
           "maxFetches": 8,
-          "publishedAtRegex": "publishdate\" content=\"(20\\d{2}[-/]\\d{1,2}[-/]\\d{1,2})"
+          "publishedAtRegex": "publishdate\" content=\"(20\\d{2}-\\d{2}-\\d{2}|20\\d{2}/\\d{1,2}/\\d{1,2})"
         }
       },
       "tier": "T2",
