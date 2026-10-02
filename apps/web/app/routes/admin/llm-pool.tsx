@@ -190,7 +190,8 @@ export default function LlmPoolAdmin({ loaderData: data }: Route.ComponentProps)
           )}
         </Card>
 
-        <Card title="环境变量槽位（只读）" subtitle="来自 .env 的 LLM_API_N_* 配置，不能在这里修改；留空的槽位不会启用。">
+        <Card title="环境变量槽位（只读）">
+          <p className="mb-3 text-[12.5px] leading-relaxed text-ink-3">来自 .env 的 LLM_API_N_* 配置，不能在这里修改；留空的槽位不会启用。</p>
           {data.envApis.length ? (
             <DataTable
               dense
