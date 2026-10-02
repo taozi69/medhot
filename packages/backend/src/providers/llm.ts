@@ -158,10 +158,11 @@ function isConnectFailure(error: unknown): boolean {
   return ["ECONNREFUSED", "ENOTFOUND", "EAI_AGAIN", "UND_ERR_CONNECT_TIMEOUT", "ECONNRESET_BEFORE_SEND", "CERT_HAS_EXPIRED"].includes(code ?? "");
 }
 
-/** AbortSignal.timeout rejects with TimeoutError (or an AbortError on some runtimes). */
+/** AbortSignal.timeout rejects with TimeoutError. A cancelled request (shutdown abort) rejects with
+ * AbortError and must NOT be treated as a timeout, or a stopping process would fire new requests. */
 function isTimeoutError(error: unknown): boolean {
   const name = (error as { name?: string })?.name ?? "";
-  if (name === "TimeoutError" || name === "AbortError") return true;
+  if (name === "TimeoutError") return true;
   return (error as { cause?: { name?: string } })?.cause?.name === "TimeoutError";
 }
 

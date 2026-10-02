@@ -1,5 +1,5 @@
 {
-  "$comment": "M2 医疗行业包（74 信源）：首次启动时导入（scripts/seed.ts），已存在的不会被覆盖。之后在后台“信源”里增删改。分级：T1 政府/监管官方（医保局/CDC/WHO 等）；T1.5 医学会/科研机构官方；T2 高质量期刊与专业媒体。国内官方骨干：gov.cn ZUIXINZHENGCE.json + NHSA col105/col14/col20（TRS 数据岛直抓）+ NHC xwdt（Jina markdown）+ chinacdc/most/cas/cma/cmda（web_list）。IVD 专项：ivdchina/iivd/lablogatory/dark-report/instrument。国际 RSS 37 条覆盖 NEJM/Lancet/BMJ/JAMA/Nature 系/STAT/Fierce/Endpoints 等。注意：NMPA/SATCM/NSFC/CICAMS/PUMCH/NCCL/CAIVD/Medsci/Menet/VBData/Caixin/CLS/CN-Healthcare 因反爬或无法稳定解析发布时间未入种子，请在后台用 web_list 配代理或 external 推送补上。",
+  "$comment": "M2 医疗行业包（80 信源）：首次启动时导入（scripts/seed.ts），已存在的不会被覆盖。之后在后台“信源”里增删改。分级：T1 政府/监管官方（医保局/CDC/WHO 等）；T1.5 医学会/科研机构官方；T2 高质量期刊与专业媒体。国内官方骨干：gov.cn ZUIXINZHENGCE.json + NHSA col105/col14/col20（TRS 数据岛直抓）+ chinacdc/most/cas/cma/cmda（web_list）。M3 新增：梅斯医学/人民网健康/米内网/智东西（web_list+detail），雷峰网/量子位（RSS）。注意：NMPA/SATCM/NSFC/CICAMS/PUMCH/NCCL/CAIVD/VBData/Caixin/CLS/CN-Healthcare 因反爬或无法稳定解析发布时间未入种子，请在后台用 web_list 配代理或 external 推送补上。",
   "sources": [
     {
       "id": "rss-nejm",
@@ -1606,6 +1606,171 @@
       "tags": [
         "产业媒体",
         "研发"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-medsci",
+      "name": "梅斯医学·临床资讯",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://news.medsci.cn/",
+        "baseUrl": "https://news.medsci.cn",
+        "parseMode": "html",
+        "allowUrlPrefixes": [
+          "https://news.medsci.cn/article/show_article.do"
+        ],
+        "detail": {
+          "maxFetches": 8,
+          "publishedAtRegex": "(20\\d{2}年\\d{1,2}月\\d{1,2})"
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "医药媒体",
+        "临床"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-people-health",
+      "name": "人民网·健康",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "http://health.people.com.cn/",
+        "baseUrl": "http://health.people.com.cn",
+        "parseMode": "html",
+        "allowUrlPrefixes": [
+          "http://health.people.com.cn/n1/"
+        ],
+        "detail": {
+          "maxFetches": 8,
+          "publishedAtRegex": "publishdate\" content=\"(20\\d{2}[-/]\\d{1,2}[-/]\\d{1,2})"
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "权威媒体",
+        "健康"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-menet",
+      "name": "米内网·医药资讯",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.menet.com.cn/",
+        "baseUrl": "https://www.menet.com.cn",
+        "parseMode": "html",
+        "allowUrlPrefixes": [
+          "https://www.menet.com.cn/info/"
+        ],
+        "detail": {
+          "maxFetches": 8,
+          "publishedAtRegex": "og:release_date\" content=\"(20\\d{2}-\\d{2}-\\d{2})"
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "医药媒体",
+        "产业"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-zhidx",
+      "name": "智东西",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.zhidx.com/",
+        "baseUrl": "https://www.zhidx.com",
+        "parseMode": "html",
+        "allowUrlPrefixes": [
+          "https://www.zhidx.com/p/"
+        ],
+        "denyUrlPrefixes": [
+          "https://www.zhidx.com/p/category/"
+        ],
+        "detail": {
+          "maxFetches": 8,
+          "publishedAtRegex": "class=\"time\">(20\\d{2}-\\d{2}-\\d{2}|20\\d{2}/\\d{2}/\\d{2})"
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "科技媒体",
+        "AI"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-leiphone",
+      "name": "雷峰网",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "feedUrl": "https://www.leiphone.com/feed"
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "科技媒体",
+        "AI"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-qbitai",
+      "name": "量子位",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "feedUrl": "https://www.qbitai.com/feed"
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "科技媒体",
+        "AI"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
