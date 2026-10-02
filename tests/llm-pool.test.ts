@@ -10,6 +10,7 @@ import {
   nextAvailable,
   withFailover,
   poolHealth,
+  globalActiveRequests,
 } from "../packages/backend/src/providers/llm-pool.ts";
 
 async function withEnv(env: Record<string, string>, fn: () => void | Promise<void>): Promise<void> {
@@ -187,4 +188,58 @@ test("withFailover succeeds on a later attempt and never retries non-retryable e
     /not retryable/,
   );
   assert.equal(nonRetryableCalls, 1); // no retry
+});
+
+// Regression: a throwing attempt (connect/timeout/429/5xx) must still release the
+// per-endpoint slot and the global slot, or repeated failures leak slots until the
+// pool deadlocks and the worker queue stalls.
+test("slots are released when an attempt throws (no leak on failure paths)", async () => {
+  await withEnv({ ...SLOT1, LLM_GLOBAL_MAX_CONCURRENCY: "1", LLM_POOL_COOLDOWN_MS: "3" }, async () => {
+    refreshPool();
+    assert.equal(globalActiveRequests(), 0);
+    for (let round = 0; round < 5; round++) {
+      const acquired = await acquireEndpoint();
+      try {
+        throw new Error("HTTP 503"); // simulates paidRequest throwing inside runOnce
+      } catch (error) {
+        acquired.markFailed(String(error)); // what chatJson does on retryable failures
+      } finally {
+        acquired.release(); // the finally that used to be missing
+      }
+      assert.equal(globalActiveRequests(), 0, `global slot leaked on round ${round}`);
+      assert.ok(poolHealth().every((h) => h.activeRequests === 0), `endpoint slot leaked on round ${round}`);
+    }
+  });
+});
+
+// The pattern chatJson now uses: every attempt acquires and releases exactly once,
+// even across failover retries, so the pool never accumulates in-flight counts.
+test("repeated acquire/throw/release cycles never leak global or endpoint slots", async () => {
+  await withEnv({ ...SLOT1, ...SLOT2, LLM_GLOBAL_MAX_CONCURRENCY: "5", LLM_POOL_COOLDOWN_MS: "3" }, async () => {
+    refreshPool();
+    for (let round = 0; round < 10; round++) {
+      try {
+        await withFailover(
+          async () => {
+            const acquired = await acquireEndpoint();
+            try {
+              throw new Error("HTTP 429");
+            } catch (error) {
+              acquired.markFailed("HTTP 429");
+              throw error;
+            } finally {
+              acquired.release();
+            }
+          },
+          (e) => (e as { message?: string }).message?.includes("429") === true,
+          3,
+          () => 8,
+        );
+      } catch {
+        // all attempts failed — expected
+      }
+      assert.equal(globalActiveRequests(), 0, `global slot leaked on round ${round}`);
+      assert.ok(poolHealth().every((h) => h.activeRequests === 0), `endpoint slot leaked on round ${round}`);
+    }
+  });
 });

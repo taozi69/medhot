@@ -12,7 +12,7 @@ import { banSource, eraseFeedback, feedbackScreenshot, listFeedback, unbanSource
 import { listMonitorEvents, listMonitorPosts, relinkPost, resolveMonitorPost, reviewReceipt, setWithdrawn, updateMonitorEvent } from "@aihot/backend/admin/monitor";
 import { releaseReceipt, requeueFailedArticles, resolveDelivery, runsOverview } from "@aihot/backend/admin/runs";
 import { listBudgets, listTargets, replaceContactQr, setTargetEnabled, updateBudget } from "@aihot/backend/admin/settings";
-import { createLlmApi, deleteLlmApi, listLlmApis, testLlmApi, updateLlmApi } from "@aihot/backend/admin/llm-apis";
+import { createLlmApi, deleteLlmApi, listLlmApis, listProviderModels, benchmarkLlmApis, testLlmApi, updateLlmApi } from "@aihot/backend/admin/llm-apis";
 import { createSource, fetchNow, listSources, previewSource, sourceDetail, updateSource } from "@aihot/backend/admin/sources";
 import { sql } from "@aihot/backend/db";
 import { loadContact } from "@aihot/backend/site/contact";
@@ -121,6 +121,8 @@ export function registerAdmin(app: FastifyInstance) {
   app.get("/api/admin/llm-apis", adminHandler(async () => listLlmApis()));
   app.post("/api/admin/llm-apis", adminHandler(async (req, _reply, admin) => createLlmApi(body(req) as never, actorOf(admin))));
   app.post("/api/admin/llm-apis/test", adminHandler(async (req) => testLlmApi(body(req) as never)));
+  app.post("/api/admin/llm-apis/models", adminHandler(async (req) => listProviderModels(body(req) as never)));
+  app.post("/api/admin/llm-apis/benchmark", adminHandler(async () => benchmarkLlmApis()));
   app.patch("/api/admin/llm-apis/:id", adminHandler(async (req, reply, admin) => orNotFound(req, reply, await updateLlmApi(param(req, "id"), body(req) as never, actorOf(admin)))));
   app.delete("/api/admin/llm-apis/:id", adminHandler(async (req, reply, admin) => {
     const b = body<{ reason?: string }>(req);

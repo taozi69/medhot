@@ -34,6 +34,18 @@ interface PoolData {
   envApis: EnvApi[];
 }
 
+interface ModelFetchState {
+  busy: boolean;
+  models: string[];
+  detail?: string;
+}
+
+interface BenchmarkResult {
+  rows: Array<{ id: string; name: string; baseUrl: string; model: string; ok: boolean; latencyMs: number; detail?: string }>;
+  slowestMs: number | null;
+  fastestMs: number | null;
+}
+
 export async function loader({ request }: Route.LoaderArgs) {
   return adminGet<PoolData>(request, "/api/admin/llm-apis");
 }
@@ -55,8 +67,11 @@ export default function LlmPoolAdmin({ loaderData: data }: Route.ComponentProps)
   const { run, busy } = useAdminAction();
   const me = useAdminMe();
   const [draft, setDraft] = useState<Draft | null>(null);
-  const [deleting, setDeleting] = useState<PoolApi | null>(null);
-  const [testing, setTesting] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState<PoolApi | null>(null);
+    const [testing, setTesting] = useState<string | null>(null);
+    const [models, setModels] = useState<ModelFetchState>({ busy: false, models: [] });
+    const [benchmark, setBenchmark] = useState<BenchmarkResult | null>(null);
+    const [benchmarking, setBenchmarking] = useState(false);
 
   const set = (patch: Partial<Draft>) => setDraft((d) => (d ? { ...d, ...patch } : d));
 
@@ -115,14 +130,63 @@ export default function LlmPoolAdmin({ loaderData: data }: Route.ComponentProps)
     }
   };
 
+  const fetchModels = async () => {
+    if (!draft || !draft.baseUrl.trim() || !draft.apiKey.trim()) {
+      toast("先填 Base URL 和 API Key 才能拉取模型", "error");
+      return;
+    }
+    setModels({ busy: true, models: [] });
+    try {
+      const res = await fetch("/api/admin/llm-apis/models", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json", "x-csrf-token": me.csrf },
+        body: JSON.stringify({ baseUrl: draft.baseUrl.trim(), apiKey: draft.apiKey.trim() }),
+      }).then((r) => r.json() as Promise<{ ok: boolean; models: string[]; detail?: string }>);
+      if (res.ok) {
+        setModels({ busy: false, models: res.models });
+        if (res.models.length) {
+          toast(`拉到 ${res.models.length} 个模型`, "ok");
+          // Pick a sensible default instead of leaving the user to copy the first id.
+          set({ model: res.models[0]! });
+        } else {
+          toast("接口没有返回可用模型", "error");
+        }
+      } else {
+        setModels({ busy: false, models: [], detail: res.detail ?? "拉取失败" });
+        toast(`拉取失败：${res.detail ?? "未知错误"}`, "error");
+      }
+    } catch {
+      setModels({ busy: false, models: [], detail: "网络错误" });
+      toast("网络错误，请稍后再试", "error");
+    }
+  };
+
+  const runBenchmark = async () => {
+    setBenchmarking(true);
+    setBenchmark(null);
+    const res = await run<BenchmarkResult>("POST", "/api/admin/llm-apis/benchmark", undefined, { label: "benchmark", revalidate: false });
+    setBenchmarking(false);
+    if (res) {
+      setBenchmark(res);
+      const ok = res.rows.filter((r) => r.ok).length;
+      toast(`测速完成：${ok}/${res.rows.length} 可用`, ok === res.rows.length ? "ok" : "error");
+    }
+  };
+
   return (
     <AdminPage
       title="LLM API Pool"
       subtitle="自定义 OpenAI 兼容接口池（/chat/completions）。多个端点轮询分流，失败自动冷却 60 秒；保存或停用约 5 秒内在所有进程生效，无需重启。API Key 只保存在服务器，不会回显。"
       actions={
-        <Button tone="primary" onClick={() => setDraft({ ...emptyDraft })}>
-          添加 API
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button tone="secondary" busy={benchmarking} onClick={runBenchmark} disabled={data.apis.length === 0 && data.envApis.length === 0}>
+            测速全部端点
+          </Button>
+          <Button tone="primary" onClick={() => setDraft({ ...emptyDraft })}>
+            添加 API
+          </Button>
+        </div>
       }
     >
       <div className="grid gap-5">
@@ -190,6 +254,37 @@ export default function LlmPoolAdmin({ loaderData: data }: Route.ComponentProps)
           )}
         </Card>
 
+        {benchmark && (
+          <Card title="测速结果" pad={false}>
+            <DataTable
+              dense
+              rows={benchmark.rows}
+              rowKey={(r) => r.id}
+              columns={[
+                { key: "n", label: "端点", render: (r) => r.name },
+                { key: "u", label: "Base URL", render: (r) => <span className="font-mono text-[11.5px]">{r.baseUrl}</span> },
+                { key: "m", label: "模型", render: (r) => <span className="font-mono text-[12px]">{r.model}</span> },
+                {
+                  key: "l",
+                  label: "延迟",
+                  align: "right",
+                  render: (r) => (
+                    <span className={r.ok ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}>
+                      {r.ok ? `${r.latencyMs} ms` : "失败"}
+                    </span>
+                  ),
+                },
+                { key: "d", label: "详情", render: (r) => <span className="text-[12px] text-ink-3">{r.detail ?? (r.ok ? "OK" : "")}</span> },
+              ]}
+            />
+            {benchmark.slowestMs !== null && (
+              <p className="border-t border-line px-4 py-2.5 text-[12.5px] text-ink-3">
+                最快 {benchmark.fastestMs} ms · 最慢 {benchmark.slowestMs} ms
+              </p>
+            )}
+          </Card>
+        )}
+
         <Card title="环境变量槽位（只读）">
           <p className="mb-3 text-[12.5px] leading-relaxed text-ink-3">来自 .env 的 LLM_API_N_* 配置，不能在这里修改；留空的槽位不会启用。</p>
           {data.envApis.length ? (
@@ -232,7 +327,18 @@ export default function LlmPoolAdmin({ loaderData: data }: Route.ComponentProps)
           <Input value={draft?.apiKey ?? ""} onChange={(e) => set({ apiKey: e.target.value })} placeholder="sk-…" autoComplete="off" />
         </Field>
         <Field label="模型名">
-          <Input value={draft?.model ?? ""} onChange={(e) => set({ model: e.target.value })} placeholder="deepseek-chat" />
+          <div className="flex gap-2">
+            <Input
+              value={draft?.model ?? ""}
+              onChange={(e) => set({ model: e.target.value })}
+              placeholder="deepseek-chat"
+              list={models.models.length ? "llm-pool-models" : undefined}
+            />
+            <Button size="sm" tone="secondary" busy={models.busy} onClick={fetchModels} disabled={!draft?.baseUrl.trim() || !draft?.apiKey.trim()}>
+              拉取模型
+            </Button>
+          </div>
+          {models.models.length > 0 && <datalist id="llm-pool-models">{models.models.map((m) => <option key={m} value={m} />)}</datalist>}
         </Field>
         <Field label="最大并发（1-64）">
           <Input value={draft?.maxConcurrency ?? "2"} onChange={(e) => set({ maxConcurrency: e.target.value })} inputMode="numeric" />

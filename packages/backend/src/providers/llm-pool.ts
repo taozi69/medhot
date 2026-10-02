@@ -262,6 +262,11 @@ export async function acquireEndpoint(): Promise<AcquiredEndpoint> {
   }
 }
 
+/** Read-only global in-flight request count; useful for diagnostics and tests. */
+export function globalActiveRequests(): number {
+  return globalActive;
+}
+
 /** Read-only health snapshot for the admin; never contains API keys. */
 export function poolHealth(): Array<{
   id: string;

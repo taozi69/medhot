@@ -200,3 +200,100 @@ export async function testLlmApi(input: { id?: string; baseUrl?: string; apiKey?
     return { ok: false, latencyMs: Date.now() - started, detail: message.slice(0, 300) };
   }
 }
+
+/**
+ * Lists the models an OpenAI-compatible endpoint serves (GET /models).
+ * The key never leaves the server: pass an `id` for a saved entry, or the
+ * baseUrl + apiKey currently typed in the form (the browser already has those).
+ */
+export async function listProviderModels(input: { id?: string; baseUrl?: string; apiKey?: string }): Promise<{ ok: boolean; models: string[]; detail?: string }> {
+  let baseUrl = input.baseUrl?.trim();
+  let apiKey = input.apiKey?.trim();
+  if (input.id) {
+    const { apis } = await loadSettings();
+    const record = apis.find((r) => r.id === input.id);
+    if (!record) throw new Error("找不到这个 API 端点");
+    baseUrl = baseUrl || record.baseUrl;
+    apiKey = apiKey || record.apiKey;
+  }
+  if (!baseUrl || !apiKey) return { ok: false, models: [], detail: "Base URL 和 API Key 都需要填写" };
+  try {
+    const res = await fetch(`${normalizeBaseUrl(baseUrl)}/models`, {
+      headers: { authorization: `Bearer ${apiKey}` },
+      signal: AbortSignal.timeout(20_000),
+    });
+    const text = await res.text();
+    if (!res.ok) return { ok: false, models: [], detail: `HTTP ${res.status}：${text.slice(0, 300)}` };
+    const json = JSON.parse(text) as { data?: Array<{ id?: string }> };
+    const models = (json.data ?? [])
+      .map((m) => String(m.id ?? "").trim())
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b));
+    return { ok: true, models };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { ok: false, models: [], detail: `拉取失败：${message.slice(0, 300)}` };
+  }
+}
+
+export interface BenchmarkRow {
+  id: string;
+  name: string;
+  baseUrl: string;
+  model: string;
+  ok: boolean;
+  /** First-token-to-full-response latency of one tiny "ping" completion, in ms. */
+  latencyMs: number;
+  detail?: string;
+}
+
+/**
+ * Pings every endpoint (admin-managed + env slots) concurrently with a tiny
+ * completion and reports per-endpoint latency. Never returns or logs keys —
+ * the row identifies an endpoint by name/baseUrl/model only.
+ */
+export async function benchmarkLlmApis(): Promise<{ rows: BenchmarkRow[]; slowestMs: number | null; fastestMs: number | null }> {
+  const { apis } = await loadSettings();
+  const targets = apis
+    .filter((r) => r.enabled !== false && r.baseUrl.trim() && r.apiKey.trim() && r.model.trim())
+    .map((r) => ({ id: r.id, name: r.name || r.model, baseUrl: r.baseUrl, apiKey: r.apiKey, model: r.model }));
+  // Env slots that are fully configured take part too (key read from env only).
+  const env = Object.keys(process.env)
+    .map((k) => /^LLM_API_(\d+)_KEY$/.exec(k))
+    .filter(Boolean)
+    .map((m) => {
+      const n = m![1]!;
+      const apiKey = process.env[`LLM_API_${n}_KEY`]?.trim() ?? "";
+      const baseUrl = process.env[`LLM_API_${n}_BASE_URL`]?.trim() ?? "";
+      const model = process.env[`LLM_API_${n}_MODEL`]?.trim() ?? "";
+      return { id: `env-${n}`, name: `环境槽位 ${n}`, baseUrl, apiKey, model };
+    })
+    .filter((t) => t.apiKey && t.baseUrl && t.model);
+  const rows = await Promise.all(
+      [...targets, ...env].map(async (t): Promise<BenchmarkRow> => {
+        const started = Date.now();
+        try {
+          const res = await fetch(`${normalizeBaseUrl(t.baseUrl)}/chat/completions`, {
+            method: "POST",
+            headers: { "content-type": "application/json", authorization: `Bearer ${t.apiKey}` },
+            body: JSON.stringify({ model: t.model, messages: [{ role: "user", content: "ping" }], max_tokens: 8 }),
+            signal: AbortSignal.timeout(30_000),
+          });
+          const latencyMs = Date.now() - started;
+          const text = await res.text();
+          if (!res.ok) return { id: t.id, name: t.name, baseUrl: t.baseUrl, model: t.model, ok: false, latencyMs, detail: `HTTP ${res.status}` };
+          return { id: t.id, name: t.name, baseUrl: t.baseUrl, model: t.model, ok: true, latencyMs };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          return { id: t.id, name: t.name, baseUrl: t.baseUrl, model: t.model, ok: false, latencyMs: Date.now() - started, detail: message.slice(0, 120) };
+        }
+      }),
+    );
+  const okRows = rows.filter((r) => r.ok);
+  const latencies = okRows.map((r) => r.latencyMs);
+  return {
+    rows,
+    slowestMs: latencies.length ? Math.max(...latencies) : null,
+    fastestMs: latencies.length ? Math.min(...latencies) : null,
+  };
+}
