@@ -1,5 +1,10 @@
 # 部署
 
+> **MedHOT 分支**：本仓库是 AIHOT 的医疗行业分支，代码托管在自己的私有仓库
+> `https://github.com/taozi69/medhot`。线上实例从它部署，不是下面的上游地址。
+> 下面的命令以上游 AIHOT 为例；换成 MedHOT 时把仓库地址替换成 `taozi69/medhot`。
+> 线上实例由手机 WorkBuddy（腾讯 CloudBase）部署，更新流程见 [重新部署](redeploy.md)。
+
 ## 用 Docker（推荐）
 
 需要一台装了 Docker（带 Compose）的机器。云服务器建议至少 2 核、4 GB 内存，构建镜像时要用到。

@@ -73,7 +73,7 @@
 
 ## 5. 门槛与校准：`industry/selection.ts`
 
-两次评分之和 ≥ 2 × 门槛才入选。默认门槛（T1 60、T1_5 65、T2 76）是 AIHOT 在 AI 领域校准出来的，换了行业和提示词，需要重新校准：
+两次评分之和 ≥ 2 × 门槛才入选。MedHOT 医疗包当前的门槛是 T1 50、T1_5 55、T2 62（`understandFloor` 45）；上游 AIHOT 在 AI 领域校准出来的一组是 T1 60、T1_5 65、T2 76（floor 50），偏严。换了行业和提示词，需要重新校准：
 
 1. 从你的信源里挑 100–200 条资料，自己标“该选 / 不该选”，存成 `.data/gold.jsonl`（格式见 [精选与校准](selection.md)，`industry/gold.example.jsonl` 有两条示例）。
 2. 运行 `node --env-file=.env scripts/eval-selection.ts --gold .data/gold.jsonl`，看准确率、查准率、查全率，和不同门槛下的结果。
@@ -119,6 +119,6 @@ DATABASE_URL=postgres://…/myhot_test npm test     # 库名必须以 _test 或 
 node scripts/smoke.ts --base http://localhost:3000   # 站点跑起来以后
 ```
 
-`tests/` 里有些测试用的是示例行业的分类、标签和公司（比如 `ai-models`、“模型发布”、Anthropic）。改了 `industry/taxonomy.ts` 以后这些测试会失败，把例子换成你行业里的对应项即可，测的规则本身不用改。
+`tests/` 里有些测试用的是行业包里的分类、标签和公司。改了 `industry/taxonomy.ts` 以后这些测试会失败，把例子换成你行业里的对应项即可，测的规则本身不用改。（MedHOT 已经把这一批从 AI 词表换成了医疗词表：`industry`、`产业资本`、`pfizer` 等，见 `tests/analyze.test.ts`。）另外 `tests/analyze.test.ts` 里也重复了 `industry/selection.ts` 的门槛，改门槛后跑 `npm run check:thresholds` 检查两处是否还一致。
 
 然后打开网站看一眼首页、全部动态、日报和关于页，再去后台“信源”页看信源是不是都抓成功了。
