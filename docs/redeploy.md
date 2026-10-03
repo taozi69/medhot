@@ -59,7 +59,7 @@ NOTHING`）：只补数据库里没有的源，不动已有的 —— 所以后�
 ```
 
 **部署后确认（必做）：** 打开后台信源页，看总数是不是新的。
-比如原来 80 个、这次新增 5 个，要看到 85。数字对上才算真的成功。
+比如原来 80 个、这次新增到 85，就要看到 85。数字对上才算真的成功。
 
 > seed 的输出会打印 `sources: N added, M already there`。N 是这次新增的数量，
 > 和你在 `sources.json` 里加的数量对得上就说明没问题。
@@ -90,7 +90,7 @@ node scripts/m3-validate-all.mjs     # 应输出 sources=N  bad=0
 
 | tag | 内容 |
 |---|---|
-| `medhot-v3.0.0` | 80 信源，CI 全绿 —— 当前稳定版 |
+| `medhot-v3.0.0` | 80 信源，CI 全绿（M4 的 85 信源尚未打 tag） |
 | `medhot-v2.2.2` | 测试对齐医疗 taxonomy |
 | `medhot-v2.2.0` | 槽位泄漏修复 + 拉模型 / 测速 |
 | `medhot-v2.0.0` | M2：74 信源 + 动态 LLM API Pool |
