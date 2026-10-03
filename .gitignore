@@ -33,6 +33,10 @@ scripts/m2-*.result.json
 scripts/m2-*.mjs
 scripts/m3-*.result.json
 scripts/m3-*.mjs
+scripts/m4-*.json
+scripts/m4-*.result.json
+scripts/m4-*.mjs
 # The validators are product tooling, not throwaway probes: keep them tracked.
 !scripts/m2-validate.mjs
 !scripts/m3-validate-all.mjs
+!scripts/check-threshold-consistency.mjs

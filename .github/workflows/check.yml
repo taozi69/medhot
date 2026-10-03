@@ -46,6 +46,8 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Typecheck
         run: npm run typecheck
+      - name: Threshold consistency
+        run: npm run check:thresholds
       - name: Build web
         run: npm run build -w @aihot/web
       - name: Web tests
