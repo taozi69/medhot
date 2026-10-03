@@ -156,6 +156,8 @@ docker compose up -d --build
 | [精选与校准](docs/selection.md) | 一条资料怎么变成精选，怎么用自己的样本校准 |
 | [事件归组与关系评测](docs/grouping.md) | 事件关系怎么判断，怎么用自己的 pairwise gold set 评测 |
 | [部署](docs/deploy.md) | Docker、域名和 HTTPS、中国大陆、更新、备份、花多少钱 |
+| [重新部署](docs/redeploy.md) | 什么时候要重新部署、三种场景的提示词、`.env` 为什么不能丢 |
+| [`.env` 核对清单](docs/deploy-env-checklist.md) | 重新部署前后逐项核对，哪个变量丢了会出现什么症状 |
 | [架构](docs/architecture.md) | 三个进程、几条不变的规则、目录、对外出口 |
 | [模型榜与 Codex 重置监控](docs/leaderboard.md) | 两个 AI 专属模块 |
 
