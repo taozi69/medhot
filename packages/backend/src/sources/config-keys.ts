@@ -37,7 +37,7 @@ const NESTED: Record<string, string[]> = {
 };
 
 const VALUES: Record<string, string[]> = {
-  adapter: ["mimo_home"],
+  adapter: ["mimo_home", "browser"],
   parseMode: ["html", "markdown", "docusaurus_changelog"],
 };
 

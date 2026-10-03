@@ -1,5 +1,5 @@
 {
-  "$comment": "M2 医疗行业包（80 信源）：首次启动时导入（scripts/seed.ts），已存在的不会被覆盖。之后在后台“信源”里增删改。分级：T1 政府/监管官方（医保局/CDC/WHO 等）；T1.5 医学会/科研机构官方；T2 高质量期刊与专业媒体。国内官方骨干：gov.cn ZUIXINZHENGCE.json + NHSA col105/col14/col20（TRS 数据岛直抓）+ chinacdc/most/cas/cma/cmda（web_list）。M3 新增：梅斯医学/人民网健康/米内网/智东西（web_list+detail），雷峰网/量子位（RSS）。注意：NMPA/SATCM/NSFC/CICAMS/PUMCH/NCCL/CAIVD/VBData/Caixin/CLS/CN-Healthcare 因反爬或无法稳定解析发布时间未入种子，请在后台用 web_list 配代理或 external 推送补上。",
+  "$comment": "M2 医疗行业包（85 信源）：首次启动时导入（scripts/seed.ts），已存在的不会被覆盖。之后在后台“信源”里增删改。分级：T1 政府/监管官方（医保局/CDC/WHO 等）；T1.5 医学会/科研机构官方；T2 高质量期刊与专业媒体。国内官方骨干：gov.cn ZUIXINZHENGCE.json + NHSA col105/col14/col20（TRS 数据岛直抓）+ chinacdc/most/cas/cma/cmda（web_list）。M3 新增：梅斯医学/人民网健康/米内网/智东西（web_list+detail），雷峰网/量子位（RSS）。M4 新增：健康时报网/新华网健康/科技日报/中新网健康/澎湃健康（web_list+detail）。注意：NMPA/SATCM/NSFC/CICAMS/PUMCH/NCCL/CAIVD/VBData/Caixin/CLS/CN-Healthcare 因反爬或无法稳定解析发布时间未入种子，请在后台用 web_list 配代理或 external 推送补上。",
   "sources": [
     {
       "id": "rss-nejm",
@@ -1771,6 +1771,157 @@
       "tags": [
         "科技媒体",
         "AI"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-jksb",
+      "name": "健康时报网",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "http://www.jksb.com.cn/html/news/",
+        "baseUrl": "http://www.jksb.com.cn",
+        "parseMode": "html",
+        "allowUrlPrefixes": [
+          "http://www.jksb.com.cn/html/news/"
+        ],
+        "detail": {
+          "maxFetches": 8,
+          "publishedAtRegex": "class=\"info\">.*?<span>(20\\d{2}-\\d{2}-\\d{2})"
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "权威媒体",
+        "健康"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-xinhua-health",
+      "name": "新华网·健康",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "http://www.news.cn/health/",
+        "baseUrl": "http://www.news.cn",
+        "parseMode": "html",
+        "allowUrlPrefixes": [
+          "http://www.news.cn/health/"
+        ],
+        "detail": {
+          "maxFetches": 8,
+          "publishedAtRegex": "publishdate\" content=\"(20\\d{2}-\\d{2}-\\d{2})"
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "权威媒体",
+        "健康"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-stdaily",
+      "name": "科技日报",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.stdaily.com/",
+        "baseUrl": "https://www.stdaily.com",
+        "parseMode": "html",
+        "allowUrlPrefixes": [
+          "https://www.stdaily.com/web/"
+        ],
+        "detail": {
+          "maxFetches": 8,
+          "publishedAtRegex": "class=\"time1[^\"]*\">\\s*(20\\d{2}-\\d{2}-\\d{2})"
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "权威媒体",
+        "科技"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-chinanews-health",
+      "name": "中国新闻网·健康",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.chinanews.com.cn/life/",
+        "baseUrl": "https://www.chinanews.com.cn",
+        "parseMode": "html",
+        "allowUrlPrefixes": [
+          "https://www.chinanews.com.cn/jk/",
+          "https://www.chinanews.com/jk/"
+        ],
+        "detail": {
+          "maxFetches": 8,
+          "publishedAtRegex": "published at (20\\d{2}-\\d{2}-\\d{2})"
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "权威媒体",
+        "健康"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-thepaper-health",
+      "name": "澎湃新闻·健康",
+      "kind": "web_list",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "url": "https://www.thepaper.cn/channel_25951",
+        "baseUrl": "https://www.thepaper.cn",
+        "parseMode": "html",
+        "allowUrlPrefixes": [
+          "https://www.thepaper.cn/newsDetail_forward_"
+        ],
+        "detail": {
+          "maxFetches": 8,
+          "publishedAtRegex": "<span>(20\\d{2}-\\d{2}-\\d{2}) \\d{2}:\\d{2}</span>"
+        }
+      },
+      "tier": "T2",
+      "first_party": false,
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "权威媒体",
+        "健康"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false

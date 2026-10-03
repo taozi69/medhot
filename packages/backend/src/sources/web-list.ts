@@ -9,6 +9,29 @@ import { FetchError, type Candidate, type SourceRow } from "./types.ts";
 
 const JINA_PREFIX = "https://r.jina.ai/";
 
+/** Playwright headless Chrome, only when adapter=browser is requested. */
+async function fetchWithBrowser(url: string): Promise<string> {
+  const { chromium } = await import("playwright");
+  const exe = process.env.CHROME_PATH || "C:\\Users\\Administrator\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
+  const browser = await chromium.launch({ executablePath: exe, headless: true, args: ["--no-sandbox", "--disable-blink-features=AutomationControlled"] });
+  try {
+    const page = await browser.newPage({
+      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+    });
+    await page.goto(url, { waitUntil: "networkidle", timeout: 30_000 });
+    await page.waitForTimeout(3000);
+    // Scroll to trigger lazy loading ( infinite scroll / IntersectionObserver ).
+    // The body of evaluate runs in the browser, not here, so window/document are not TS symbols.
+    await page.evaluate("window.scrollTo(0, document.body.scrollHeight)");
+    await page.waitForTimeout(2000);
+    await page.evaluate("window.scrollTo(0, 0)");
+    await page.waitForTimeout(1000);
+    return await page.content();
+  } finally {
+    await browser.close();
+  }
+}
+
 /** A time followed by its zone: "10:00Z", "10:00:00+08:00", "10:00:00 +0000", "10:00:00 GMT". */
 const EXPLICIT_ZONE = /\d{1,2}:\d{2}(?::\d{2}(?:\.\d+)?)?\s*(?:Z|[+-]\d{2}:?\d{2}|GMT|UTC)\b/i;
 
@@ -111,17 +134,21 @@ function absolute(href: string | undefined, base: string): string | null {
   }
 }
 
-async function fetchListingText(source: SourceRow): Promise<{ text: string; viaJina: boolean; base: string }> {
+async function fetchListingText(source: SourceRow): Promise<{ text: string; viaJina: boolean; viaBrowser: boolean; base: string }> {
   const url = String(source.config.url ?? "");
   if (!url) throw new FetchError("url missing");
   if (url.startsWith(JINA_PREFIX)) {
     const target = url.slice(JINA_PREFIX.length);
     const page = await jinaRead(target, { purpose: "source_listing", subject: `source:${source.id}`, cacheToleranceSeconds: source.config.cacheToleranceSeconds, perRead: true });
-    return { text: page.markdown, viaJina: true, base: source.config.baseUrl ?? target };
+    return { text: page.markdown, viaJina: true, viaBrowser: false, base: source.config.baseUrl ?? target };
+  }
+  if (source.config.adapter === "browser") {
+    const text = await fetchWithBrowser(url);
+    return { text, viaJina: false, viaBrowser: true, base: source.config.baseUrl ?? url };
   }
   const res = await guardedFetch(url, { headers: { accept: "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8" }, timeoutMs: 25_000 });
   if (res.status !== 200) throw new FetchError(`HTTP ${res.status}`, res.status);
-  return { text: res.text(), viaJina: false, base: source.config.baseUrl ?? url };
+  return { text: res.text(), viaJina: false, viaBrowser: false, base: source.config.baseUrl ?? url };
 }
 
 export function fromMarkdown(md: string, base: string, source: SourceRow): Candidate[] {
@@ -167,7 +194,29 @@ export function fromHtml(html: string, base: string, source: SourceRow): Candida
     if (!url || seen.has(url) || !allowed(url, source)) continue;
     if (!sectionsArePosts && listingItself(url, listing)) continue;
     const titleEl = c.titleSelector ? (el.is(c.titleSelector) ? el : el.find(c.titleSelector).first()) : linkEl;
-    const title = collapseWhitespace(titleEl.text() || linkEl.attr("title") || "");
+    let title = collapseWhitespace(titleEl.text() || linkEl.attr("title") || "");
+    // Browser-rendered cards: the anchor nearest a thumbnail is often a category label ("政策", "最新").
+    // Walk up until an ancestor holds another longer anchor text and take that as the headline.
+    if (c.adapter === "browser") {
+      let node = el.parent();
+      for (let depth = 0; depth < 4 && node.length; depth++) {
+        const anchors = node.find("a[href]");
+        let best = "";
+        anchors.each((_i: number, a: unknown) => {
+          const t = collapseWhitespace(node.find(a as never).text());
+          if (t.length > best.length && t.length >= 8 && !/^(评论|点赞|更多|阅读全文)$/.test(t)) best = t;
+        });
+        if (best.length >= 8) {
+          title = best;
+          break;
+        }
+        node = node.parent();
+      }
+      if (title.length < 8) {
+        const h = el.closest("div, li, article").find("h1, h2, h3, h4, .title, [class*='title'], [class*='head']").first();
+        if (h.length) title = collapseWhitespace(h.text());
+      }
+    }
     if (!title) continue;
     let publishedAt: Date | null = null;
     if (c.publishedAtSelector) {
@@ -303,8 +352,8 @@ async function fromMimoHome(html: string, base: string, source: SourceRow): Prom
 }
 
 export async function fetchWebList(source: SourceRow): Promise<Candidate[]> {
-  const { text, viaJina, base } = await fetchListingText(source);
-  const mode = source.config.adapter === "mimo_home" ? "mimo_home" : source.config.parseMode ?? (viaJina ? "markdown" : "html");
+  const { text, viaJina, viaBrowser, base } = await fetchListingText(source);
+  const mode = source.config.adapter === "mimo_home" ? "mimo_home" : viaBrowser ? "browser" : source.config.parseMode ?? (viaJina ? "markdown" : "html");
   let out: Candidate[];
   if (mode === "mimo_home") out = await fromMimoHome(text, base, source);
   else if (mode === "markdown") out = fromMarkdown(text, base, source);
@@ -337,13 +386,20 @@ export async function fetchDetail(url: string, source: SourceRow, need: DetailNe
   let html: string | null = null;
   let body: ExtractedBody | null = null;
   if ((need.date && !dateInJina) || (need.title && !titleInJina) || need.summary) {
-    const res = await guardedFetch(url, { timeoutMs: 20_000 });
-    if (res.status === 200) {
-      html = res.text();
-      if (need.body && /html/.test(res.headers.get("content-type") ?? "")) {
-        try { body = readable(html, res.url); }
-        catch { /* A failed extraction must not discard the detail metadata. */ }
+    if (source.config.adapter === "browser") {
+      try {
+        html = await fetchWithBrowser(url);
+      } catch {
+        // Fall through to the plain fetch below.
       }
+    }
+    if (html === null) {
+      const res = await guardedFetch(url, { timeoutMs: 20_000 });
+      if (res.status === 200) html = res.text();
+    }
+    if (html !== null && need.body) {
+      try { body = readable(html, url); }
+      catch { /* A failed extraction must not discard the detail metadata. */ }
     }
   }
   const $ = html === null ? null : cheerio.load(html);
